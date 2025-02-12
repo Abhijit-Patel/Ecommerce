@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const { generateToken } = require('../config/jwt');
+const redisClient = require('../config/redis');
 
 const signup = async (req, res) => {
   const { username, password } = req.body;
@@ -28,4 +29,16 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { signup, login };
+const logout = async (req, res) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) return res.status(400).json({ message: 'Token required' });
+    await redisClient.set(`blacklist:${token}`, 'true', { EX: 3600 });
+
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = { signup, login, logout };

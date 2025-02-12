@@ -5,8 +5,8 @@ const getProducts = async (req, res) => {
   let query = {};
   if (category) query.category = category;
   let sortOptions = {};
-  if (sort === 'price_asc') sortOptions.price = 1;
-  if (sort === 'price_desc') sortOptions.price = -1;
+  if (sort === 'asc') sortOptions.price = 1;
+  if (sort === 'desc') sortOptions.price = -1;
 
   try {
     const products = await Product.find(query).sort(sortOptions);
