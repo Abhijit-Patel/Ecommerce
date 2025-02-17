@@ -2,7 +2,8 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 
 const addToCart = async (req, res) => {
-  const { productId, quantity } = req.body;
+  let { productId, quantity } = req.body;
+  quantity = parseInt(quantity);
   const userId = req.user.id;
 
   try {
