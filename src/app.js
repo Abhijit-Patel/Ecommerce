@@ -6,6 +6,9 @@ const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const checkoutRoutes = require('./routes/checkoutRoutes');
+const cookieParser = require('cookie-parser');
+
+
 
 dotenv.config();
 connectDB();
@@ -13,6 +16,7 @@ connectDB();
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 app.get("/", (req, res) => {
     res.json({message: "server is running"})
