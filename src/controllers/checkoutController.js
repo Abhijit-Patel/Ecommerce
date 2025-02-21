@@ -8,8 +8,6 @@ const router = express.Router();
 const placeOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-
-    // Fetch user's cart
     const cart = await Cart.findOne({ userId });
     
     if (!cart || cart.products.length === 0) {
