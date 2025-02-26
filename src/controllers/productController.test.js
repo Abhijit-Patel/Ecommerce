@@ -13,7 +13,7 @@ describe('get products tests', () => {
     jest.clearAllMocks();
   });
 
-  it('should return all products', async () => {
+  it('Return all products', async () => {
     const mockProducts = [
       { _id: '1', name: 'Product A', category: 'Electronics', price: 100 },
       { _id: '2', name: 'Product B', category: 'Clothing', price: 50 }
@@ -29,7 +29,7 @@ describe('get products tests', () => {
     expect(Product.find).toHaveBeenCalledWith({});
   });
 
-  it('should handle errors', async () => {
+  it('Handle errors', async () => {
     Product.find.mockReturnValue({
       sort: jest.fn().mockRejectedValue(new Error('Database error'))
     });

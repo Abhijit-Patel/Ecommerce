@@ -1,47 +1,86 @@
-const request = require("supertest");
-const express = require("express");
-const { addToCart } = require("./cartController");
-const Cart = require("../models/Cart");
-const Product = require("../models/Product");
+const request = require('supertest');
+const mongoose = require('mongoose');
+const app = require('../app'); // Assuming your Express app is exported from app.js
+const Cart = require('../models/Cart');
+const Product = require('../models/Product');
+const User = require('../models/User');
+const { generateToken } = require('../config/jwt');
 
-jest.mock("../models/Cart");
-jest.mock("../models/Product");
+describe('Cart API', () => {
+  let user, token, product;
 
-const app = express();
-app.use(express.json());
+  beforeAll(async () => {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
 
-app.use((req, res, next) => {
-  req.user = { id: "user123" }; // Simulating an authenticated user
-  next();
-});
+    user = new User({ username: 'testuser111', password: 'password123' });
+    await user.save();
+    token = generateToken(user._id);
 
-app.post("/cart", addToCart);
-
-describe("POST /cart (Add to Cart)", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+    product = new Product({ name: 'Test Product', price: 100,  category: 'Electronics' });
+    await product.save();
   });
 
-  it("should return 400 if the product does not exist", async () => {
-    Product.findById.mockResolvedValue(null);
-
-    const response = await request(app)
-      .post("/cart")
-      .send({ productId: "product123", quantity: 1 });
-
-    expect(response.status).toBe(400);
-    expect(response.body).toEqual({ error: "Product not found" });
-    expect(Product.findById).toHaveBeenCalledWith("product123");
+  afterAll(async () => {
+    await Cart.deleteMany({});
+    await Product.deleteMany({});
+    await User.deleteMany({});
+    await mongoose.connection.close();
   });
 
-  it("should return 400 on server error", async () => {
-    Product.findById.mockRejectedValue(new Error("Database error"));
+  test('Add to Cart', async () => {
+    const res = await request(app)
+      .post('/api/cart/add')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ productId: product._id, quantity: 2 });
 
-    const response = await request(app)
-      .post("/cart")
-      .send({ productId: "product123", quantity: 1 });
+    expect(res.status).toBe(200);
+    expect(res.body.products.length).toBe(1);
+    expect(res.body.totalPrice).toBe(200);
+  });
 
-    expect(response.status).toBe(400);
-    expect(response.body).toEqual({ error: "Database error" });
+  test('Add to Cart', async () => {
+    await request(app)
+      .post('/api/cart/add')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ productId: product._id, quantity: 3 });
+
+    const cart = await Cart.findOne({ userId: user._id });
+    expect(cart.products[0].quantity).toBe(5);
+    expect(cart.totalPrice).toBe(500);
+  });
+
+  test('Remove from Cart', async () => {
+    const res = await request(app)
+      .post('/api/cart/remove')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ productId: product._id, quantity: 2 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.products[0].quantity).toBe(3);
+    expect(res.body.totalPrice).toBe(300);
+  });
+
+  test('Remove from Cart', async () => {
+    await request(app)
+      .post('/api/cart/remove')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ productId: product._id, quantity: 3 });
+
+    const cart = await Cart.findOne({ userId: user._id });
+    expect(cart.products.length).toBe(0);
+    expect(cart.totalPrice).toBe(0);
+  });
+
+  test('Remove from Cart', async () => {
+    const res = await request(app)
+      .post('/api/cart/remove')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ productId: product._id, quantity: 1 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Product not found in cart');
   });
 });

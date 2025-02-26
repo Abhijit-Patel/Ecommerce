@@ -12,7 +12,7 @@ app.use(express.json());
 
 // Mock authentication middleware
 app.use((req, res, next) => {
-  req.user = { id: "user123" }; // Simulating an authenticated user
+  req.user = { id: "user123" };
   next();
 });
 
@@ -23,7 +23,7 @@ describe("POST /checkout (Place Order)", () => {
     jest.clearAllMocks();
   });
 
-  it("should return 400 if the cart is empty", async () => {
+  it("cart is empty", async () => {
     Cart.findOne.mockResolvedValue(null);
 
     const response = await request(app).post("/checkout");
@@ -33,7 +33,7 @@ describe("POST /checkout (Place Order)", () => {
     expect(Cart.findOne).toHaveBeenCalledWith({ userId: "user123" });
   });
 
-  it("should return 400 if cart exists but has no products", async () => {
+  it("no products", async () => {
     Cart.findOne.mockResolvedValue({ products: [] });
 
     const response = await request(app).post("/checkout");
@@ -43,7 +43,7 @@ describe("POST /checkout (Place Order)", () => {
     expect(Cart.findOne).toHaveBeenCalledWith({ userId: "user123" });
   });
 
-  it("should place an order successfully", async () => {
+  it("order successfully", async () => {
     const mockCart = {
       userId: "user123",
       products: [{ name: "Laptop", price: 1000 }],
@@ -69,7 +69,7 @@ describe("POST /checkout (Place Order)", () => {
     expect(Cart.findOneAndDelete).toHaveBeenCalledWith({ userId: "user123" });
   });
 
-  it("should return 500 on server error", async () => {
+  it("Server error", async () => {
     Cart.findOne.mockRejectedValue(new Error("Database error"));
 
     const response = await request(app).post("/checkout");
