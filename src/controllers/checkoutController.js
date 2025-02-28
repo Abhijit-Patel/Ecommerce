@@ -4,7 +4,6 @@ const Cart = require("../models/Cart");
 
 const router = express.Router();
 
-// Checkout API
 const placeOrder = async (req, res) => {
   try {
     const userId = req.user.id;

@@ -1,6 +1,6 @@
 const request = require('supertest');
 const express = require('express');
-const authMiddleware = require('./authMiddleware'); // Update the path as per your structure
+const authMiddleware = require('./authMiddleware');
 const { verifyToken } = require('../config/jwt');
 const { blacklistedTokens } = require('../controllers/authController');
 
@@ -12,11 +12,11 @@ jest.mock('../controllers/authController', () => ({
   blacklistedTokens: [],
 }));
 
-// Set up a test Express app
+
 const app = express();
 app.use(express.json());
 
-// Create a test route to use the middleware
+
 app.get('/protected', authMiddleware, (req, res) => {
   res.json({ message: 'Access granted', user: req.user });
 });
@@ -33,7 +33,7 @@ describe('Auth Middleware', () => {
   });
 
   test('should return 401 if token is blacklisted', async () => {
-    blacklistedTokens.push('blacklistedToken123'); // Add token to mock blacklist
+    blacklistedTokens.push('blacklistedToken123'); 
 
     const response = await request(app)
       .get('/protected')

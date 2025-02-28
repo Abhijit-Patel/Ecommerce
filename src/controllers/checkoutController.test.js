@@ -10,7 +10,6 @@ jest.mock("../models/Order");
 const app = express();
 app.use(express.json());
 
-// Mock authentication middleware
 app.use((req, res, next) => {
   req.user = { id: "user123" };
   next();
